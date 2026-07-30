@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>a story, then a question</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root{
+  --ivory:#F6EEE1;
+  --ivory-dim:#CFC3B8;
+  --gold:#D9AE5C;
+  --rose:#FF7FA6;
+  --transition-speed: 1.4s;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; margin:0; }
+body{
+  font-family:'Cormorant Garamond', serif;
+  color: var(--ivory);
+  overflow:hidden;
+  height:100vh;
+  position:relative;
+  background: #150F26;
+  transition: background var(--transition-speed) ease;
+  -webkit-user-select:none; user-select:none;
+}
+
+/* ---------- mood themes ---------- */
+body.mood-cover{ background: radial-gradient(ellipse at 50% 30%, #1c1424 0%, #0d0919 70%); }
+body.mood-sepia{ background: radial-gradient(ellipse at 50% 20%, #3a2a1c 0%, #1c130c 75%); }
+body.mood-rose{  background: radial-gradient(ellipse at 50% 20%, #3a1c2a 0%, #190d14 75%); }
+body.mood-slate{ background: radial-gradient(ellipse at 50% 20%, #232a30 0%, #0e1214 75%); }
+body.mood-gold{  background: radial-gradient(ellipse at 50% 15%, #4a3410 0%, #1a1206 75%); }
+body.mood-teal{  background: radial-gradient(ellipse at 50% 20%, #103535 0%, #061414 75%); }
+body.mood-night{ background: radial-gradient(ellipse at 50% 15%, #26193f 0%, #0d0919 75%); }
+
+@media (prefers-reduced-motion: reduce){ *{ animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+
+/* ---------- particle layer ---------- */
+#particles{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
+.particle{ position:absolute; opacity:0; will-change: transform, opacity; }
+
+/* ---------- top chrome ---------- */
+#topBar{
+  position:fixed; top:0; left:0; right:0; z-index:40;
+  display:flex; align-items:center; justify-content:center;
+  gap:10px; padding:18px 16px 0;
+}
+.dot{
+  width:7px; height:7px; border-radius:50%;
+  background: rgba(255,255,255,.18);
+  transition: background .5s, transform .5s;
+}
+.dot.active{ background: var(--gold); transform: scale(1.5); }
+.dot.done{ background: rgba(217,174,92,.55); }
+
+#musicToggle{
+  position:fixed; top:16px; right:18px; z-index:41;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(217,174,92,.3);
+  color: var(--ivory);
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.1em;
+  padding:7px 13px; border-radius:999px; cursor:pointer;
+}
+
+/* ---------- stage / chapters ---------- */
+#stage{ position:relative; z-index:5; height:100%; width:100%;
+  display:flex; align-items:center; justify-content:center; padding:24px; }
+
+.chapter{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+  opacity:0; pointer-events:none;
+  transform: translateY(14px);
+  transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+.chapter.active{ opacity:1; pointer-events:auto; transform:translateY(0); }
+
+.card{
+  max-width:520px; width:100%;
+  text-align:center;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border:1px solid rgba(217,174,92,.22);
+  border-radius:18px;
+  padding:42px 34px 32px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 30px 90px rgba(0,0,0,.5);
+}
+
+.eyebrow{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.22em; text-transform:uppercase;
+  color: var(--gold); opacity:.85; margin-bottom:16px;
+}
+h1{ font-weight:600; font-size:clamp(26px,5.6vw,38px); line-height:1.18; margin:0 0 18px; }
+h1 em{ color:var(--rose); font-style:italic; }
+.body-text p{
+  font-size:19px; line-height:1.6; color:var(--ivory-dim);
+  margin:0 0 14px; font-style:italic;
+}
+.continue-row{ margin-top:28px; display:flex; gap:14px; justify-content:center; }
+button.primary{
+  font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px;
+  padding:13px 32px; border-radius:999px; border:none; cursor:pointer;
+  background: linear-gradient(135deg, var(--gold), #c98f3a);
+  color:#1B0E17;
+  box-shadow:0 8px 24px rgba(217,174,92,.3);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+button.primary:hover{ transform: translateY(-2px) scale(1.03); }
+button.ghost{
+  font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.1em;
+  padding:12px 20px; border-radius:999px; cursor:pointer;
+  background:transparent; border:1px solid rgba(255,255,255,.2); color: var(--ivory-dim);
+}
+
+/* ---------- cover ---------- */
+#coverChapter .card{ padding:56px 34px; }
+#coverChapter h1{ font-size:clamp(30px,7vw,44px); }
+.cover-sub{ font-family:'Caveat', cursive; font-size:22px; color:var(--gold); margin-bottom:30px; }
+
+#musicSetting{ margin: 4px 0 6px; }
+#musicUploadLabel{
+  display:inline-block;
+  font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.08em;
+  padding:10px 20px; border-radius:999px; cursor:pointer;
+  background: rgba(217,174,92,.12); border:1px solid rgba(217,174,92,.4);
+  color: var(--gold); transition: background .25s ease;
+}
+#musicUploadLabel:hover{ background: rgba(217,174,92,.22); }
+#musicUploadLabel.chosen{ background: rgba(217,174,92,.28); }
+#musicFileName{
+  margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:10.5px;
+  color: var(--ivory-dim); min-height: 14px;
+}
+
+/* ---------- vacation cards ---------- */
+.dest-wrap{ position:relative; margin:20px 0 6px; }
+.dest-row{ display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; }
+.dest-row::-webkit-scrollbar{ display:none; }
+.dest-card{
+  min-width:140px; background: rgba(255,255,255,.04);
+  border:1px solid rgba(217,174,92,.25); border-radius:12px;
+  padding:16px 12px; flex-shrink:0;
+}
+.dest-card .flag{ font-size:26px; margin-bottom:6px; }
+.dest-card .name{ font-size:16px; font-weight:600; color:var(--ivory); }
+.dest-card .note{ font-size:13px; color:var(--ivory-dim); font-style:italic; margin-top:4px; }
+
+/* ---------- constellation (final chapter) ---------- */
+#constSvg{ position:fixed; inset:0; z-index:2; pointer-events:none; width:100%; height:100%; }
+.conn-line{ stroke:var(--gold); stroke-width:1.4; opacity:0; filter:drop-shadow(0 0 4px rgba(217,174,92,.8)); transition:opacity 1s ease; }
+.conn-line.lit{ opacity:.85; }
+.con-star{ fill:var(--gold); opacity:0; filter:drop-shadow(0 0 6px rgba(217,174,92,.9)); transition:opacity .6s ease; }
+.con-star.lit{ opacity:1; animation: pulseStar 1.8s ease-in-out infinite; }
+@keyframes pulseStar{ 0%,100%{ r:3.2; } 50%{ r:4.4; } }
+
+.meter-row{ display:flex; justify-content:center; gap:8px; margin:22px 0 26px; }
+.meter-star{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.12); transition: all .5s; }
+.meter-star.on{ background:var(--gold); box-shadow:0 0 10px rgba(217,174,92,.9); transform:scale(1.3); }
+
+#noBtn{
+  background:transparent; border:1px solid rgba(245,235,221,.35); color:var(--ivory-dim);
+  font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px;
+  padding:13px 30px; border-radius:999px; cursor:pointer;
+  transition: transform .18s ease, left .18s ease, top .18s ease, opacity .3s;
+}
+#noBtn.roaming{ position:fixed; z-index:22; }
+.caption{
+  font-family:'Caveat', cursive; font-size:20px; color:var(--rose);
+  position:fixed; z-index:23; pointer-events:none; opacity:0;
+  transition: opacity .3s ease, transform .6s ease;
+}
+.caption.show{ opacity:1; transform:translateY(-14px); }
+
+.ring{ font-size:40px; margin-bottom:6px; display:inline-block; animation: ringFloat 2.4s ease-in-out infinite; }
+@keyframes ringFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+
+/* ---------- couple doodles floating in the background (every story chapter) ---------- */
+#coupleScene{
+  position:fixed; inset:0; z-index:3; overflow:hidden; pointer-events:none;
+  opacity:0; transition: opacity 1.4s ease;
+}
+#coupleScene.show{ opacity:1; }
+.couple-doodle{
+  position:absolute; will-change: transform;
+  height:auto; object-fit:contain;
+  animation: coupleFloat ease-in-out infinite;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+}
+@keyframes coupleFloat{
+  0%,100%{ transform: translateY(0) rotate(-4deg); }
+  50%{ transform: translateY(-16px) rotate(4deg); }
+}
+
+/* ---------- epilogue confetti/hearts ---------- */
+.confetti-piece,.fall-heart{ position:fixed; top:-20px; z-index:26; pointer-events:none; }
+.confetti-piece{ width:8px; height:14px; border-radius:2px; }
+.fall-heart{ font-size:20px; }
+
+/* ---------- lyric strip ---------- */
+#lyricStrip{
+  position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+  z-index:35; font-family:'Caveat', cursive; font-size:19px; color: var(--gold);
+  opacity:0; transition: opacity .5s ease; text-align:center; max-width:80vw;
+}
+#lyricStrip.show{ opacity:.9; }
+
+.hint{
+  margin-top:20px; font-family:'JetBrains Mono', monospace; font-size:10px;
+  letter-spacing:.12em; color: rgba(207,195,184,.5); text-transform:uppercase;
+}
+
+/* ---------- opening intro sequence (photo + lyric beats) ---------- */
+.chapter.intro-chapter{ padding:0; }
+.intro-wrap{ position:absolute; inset:0; overflow:hidden; }
+.intro-photo{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; object-position:center;
+  image-orientation: from-image; /* respect the phone's EXIF rotation instead of showing sideways */
+  opacity:0; transition: opacity .7s ease;
+  animation: introZoom 9s ease-in-out infinite alternate;
+}
+@keyframes introZoom{ from{ transform:scale(1); } to{ transform:scale(1.07); } }
+/* "behind" style: photo becomes a framed portrait floating over giant lyric text */
+.intro-wrap[data-style="behind"] .intro-photo{
+  inset:auto; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:60%; max-width:340px; height:auto; aspect-ratio:4/5;
+  border-radius:18px; box-shadow:0 30px 80px rgba(0,0,0,.55);
+  border:1px solid rgba(217,174,92,.35);
+  z-index:2; animation:none;
+}
+.intro-scrim{
+  position:absolute; inset:0; z-index:1;
+  background: linear-gradient(180deg, rgba(10,7,16,.1) 0%, rgba(10,7,16,.72) 78%, rgba(10,7,16,.92) 100%);
+  opacity:0; transition: opacity .8s ease;
+}
+.intro-wrap[data-style="overlay"] .intro-scrim{ opacity:1; }
+.intro-lyric{
+  position:absolute; left:0; right:0; bottom:9%; z-index:3;
+  text-align:center; padding:0 28px; white-space:pre-line;
+  font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:600;
+  color:var(--ivory); text-shadow:0 4px 24px rgba(0,0,0,.7);
+  font-size:clamp(22px,5.4vw,34px); line-height:1.35;
+  opacity:0; transform:translateY(10px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.intro-lyric.show{ opacity:1; transform:translateY(0); }
+.intro-wrap[data-style="behind"] .intro-lyric{
+  z-index:0; inset:0; bottom:0; display:flex; align-items:center; justify-content:center;
+  font-size:clamp(34px,10vw,64px); color:var(--gold); text-shadow:none;
+}
+.intro-wrap[data-style="behind"] .intro-lyric.show{ opacity:.22; }
+
+/* ---------- sound hint (shown only if autoplay-with-sound gets blocked) ---------- */
+#soundHint{
+  position:fixed; top:16px; left:18px; z-index:41;
+  background: rgba(255,255,255,.06); border:1px solid rgba(217,174,92,.3);
+  color: var(--ivory); font-family:'JetBrains Mono', monospace; font-size:10.5px;
+  letter-spacing:.08em; padding:7px 13px; border-radius:999px;
+  opacity:0; pointer-events:none; transition: opacity .5s ease;
+}
+#soundHint.show{ opacity:1; }
+
+#cueDebug{
+  position:fixed; bottom:8px; left:8px; z-index:999;
+  background:rgba(0,0,0,.6); color:#7CFF9E;
+  font-family:'JetBrains Mono', monospace; font-size:12px;
+  padding:6px 10px; border-radius:6px;
+}
+</style>
+</head>
+<body class="mood-cover">
+
+<div id="particles"></div>
+<div id="coupleScene"></div>
+<svg id="constSvg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet"></svg>
+
+<div id="topBar"></div>
+<button id="musicToggle">♪ music: off</button>
+<div id="soundHint">🔈 tap anywhere for sound</div>
+<audio id="bgAudio" loop></audio>
+<div id="lyricStrip"></div>
+
+<div id="stage"></div>
+
+<script>
+/* ============================================================
+   CUSTOMIZE EVERYTHING HERE
+   ============================================================ */
+const CONFIG = {
+
+  // Path to YOUR OWN audio file, placed next to this HTML file.
+  // (Can't be a copyrighted track pulled from the internet — this only
+  // works if you supply a file you own, e.g. "hey-there-delilah.mp3")
+  audioSrc: "hey%20delilah.mp3",
+
+  // Optional: cue each chapter to a timestamp (in seconds) in your song.
+  // If a chapter has no cueTime, the story waits for a manual "continue" click.
+  // Leave cueTime as null on every chapter to make the whole thing fully manual.
+  chapters: [
+    {
+      id: "cover",
+      mood: "cover",
+      isCover: true,
+      eyebrow: "a dream, then a question",
+      title: "Before I ask you something,",
+      titleEm: "I want to tell you everything first.",
+      sub: "just listen, it's playing for you",
+      cueTime: null
+    },
+    {
+      id: "intro",
+      mood: "night",
+      isIntro: true,
+      cueTime: 9.1 // when this leaves the cover screen — matches introSequence.beats[0].cueTime
+    },
+    {
+      id: "origin",
+      mood: "sepia",
+      eyebrow: "Where it started",
+      title: "Every story needs a ",
+      titleEm: "beginning.",
+      cueTime: 27.5,
+      body: [
+        "The weather was freezing but that one story reply",
+        "and after ages my inner voice whispered, 'this is the one.'",
+      ],
+      particle: { emoji: "✦", color: "#D9AE5C", count: 14 }
+    },
+    {
+      id: "present",
+      mood: "rose",
+      eyebrow: "Who you are to me",
+      title: "You are the ",
+      titleEm: "constant.",
+      cueTime: 60,
+      body: [
+        "I want you to be that one of mine for whom I am ready to fight the distance, the insecurities, the status, the doubts, the fears.",
+        "I feel like you are the one I want to be with, the one I want to grow with, the one I want to build  that dreamy life with."
+      ],
+      particle: { emoji: "❀", color: "#FF7FA6", count: 12 }
+    },
+    {
+      id: "issues",
+      mood: "slate",
+      eyebrow: "What we'll face",
+      title: "I won't promise it's ",
+      titleEm: "easy.",
+      cueTime: 82,
+      body: [
+        "Maybe I can or can't give you the world, but I can give you my all.",
+        "It's maybe not easy with me to have a luxurious life or upto your family expections today but I promise I will do my best to make tomorrow better than today."
+      ],
+      particle: { emoji: "•", color: "#8FA3AC", count: 8 }
+    },
+    {
+      id: "future",
+      mood: "gold",
+      eyebrow: "The days I'm dreaming of",
+      title: "Here's what I keep ",
+      titleEm: "picturing.",
+      cueTime: 106,
+      body: [
+        "Two kids, one dream house, a farm,  and your smile every morning.Let me be the reason you would wake up every day with a smile on your face.",
+        "I always wanted to have a stable life and dreamed of giving my family everything they ever wanted. I want to give you the same, and more.",
+      ],
+      particle: { emoji: "☀", color: "#D9AE5C", count: 10 }
+    },
+    {
+      id: "vacations",
+      mood: "teal",
+      eyebrow: "Where I want to go with you",
+      title: "And in between, ",
+      titleEm: "everywhere else.",
+      cueTime: 130,
+      body: ["Hold my hand and be with me to fulfill these goal of mine and let me the part of living your dreams"],
+      destinations: [
+        { flag: "🕋", name: "Hajj, Mecca", note: "standing there together" },
+        { flag: "🇪🇺", name: "Europe", note: "city to city, no plan" },
+        { flag: "🎤", name: "Coldplay Show", note: "singing every word, front row" },
+        { flag: "⚽", name: "El Clásico, Camp Nou", note: "the whole stadium on its feet" }
+      ],
+      particle: { emoji: "✈", color: "#4FBDBD", count: 6 }
+    },
+    {
+      id: "question",
+      mood: "night",
+      eyebrow: "The question",
+      title: "So, ",
+      titleEm: "will you marry me?",
+      cueTime: 162,
+      isQuestion: true,
+      dodgesUntilImpossible: 6,
+      noCaptions: [
+        "nice try",
+        "the ring says otherwise",
+        "not today",
+        "try again in another lifetime",
+        "the stars already agreed",
+        "closer to yes than you think"
+      ]
+    },
+    {
+      id: "epilogue",
+      mood: "night",
+      isEpilogue: true,
+      eyebrow: "Let's do life together, forever.",
+      title: "I Love you ",
+      titleEm: "3000",
+      sub: "I vow to fiercely love you in all your forms, now and forever. I promise to never forget that this is a once in a lifetime love."
+    }
+  ],
+
+  // Optional karaoke-style line sync. This is a slot for YOUR OWN words —
+  // not song lyrics — timed to your track, if you want a line to float
+  // above the lyric strip at a given moment. Leave empty to skip.
+  lyricCues: [
+    // { time: 15, text: "type a line of your own here" },
+  ],
+
+  // ---------- opening photo + lyric sequence ----------
+  // Fires during the "intro" chapter above (cueTime 9.1 to endCueTime 27.5).
+  // Every "cueTime" below is a second-offset into YOUR audio file. These are
+  // measured directly from your actual "hey delilah.mp3" via word-level
+  // speech-to-text transcription (faster-whisper), not estimated — so they
+  // should already be accurate. If you ever swap in a different recording,
+  // open the page with "?cues=1" in the URL for a live timestamp readout
+  // (bottom-left) to re-measure by ear.
+  //
+  // style: "overlay" = photo fills the screen, lyric text sits on top of it
+  // style: "behind"  = lyric text is a giant faint backdrop, photo floats
+  //                    in front of it as a framed portrait
+  //
+  // Optional "focus": since photos fill the screen they get cropped to fit —
+  // add focus:"top" (or "bottom"/"left"/"right") on a beat if the important
+  // part (like a face) sits away from the center and is getting cut off.
+  //
+  // Put your own photos next to this HTML file (or in an "img" folder)
+  // and point each "image" path at them.
+  introSequence: {
+    endCueTime: 27.5, // must match the next chapter's (origin) cueTime
+    beats: [
+      {
+        cueTime: 9.1,
+        style: "overlay",
+        image: "img/4.jpg",
+        focus: "middle",
+        lyric: "Hey there, Ruhi,"
+      },
+      {
+        cueTime: 10.9,
+        style: "overlay",
+        image: "img/ctg2.jpg", // photo of you
+        lyric: "what's it like in New York City?"
+      },
+      {
+        cueTime: 13.4,
+        style: "overlay",
+        image: "img/m2.jpg", // photo of you
+        lyric: "I'm a thousand miles away"
+      },
+      {
+        cueTime: 15.1,
+        style: "overlay",
+        image: "img/6.jpg", // photo of her
+        focus: "top",
+        lyric: "But girl, tonight, you look so pretty"
+      },
+      {
+        cueTime: 17.6,
+        style: "overlay",
+        image: "img/1.jpg",
+        focus: "middle", // photo of her
+        lyric: "Yes, you do"
+      },
+      {
+        cueTime: 20.7,
+        style: "overlay",
+        image: "img/2.jpg",
+        focus: "bottom", // photo of her
+        lyric: "Times Square can't shine as bright as you"
+      },
+      {
+        cueTime: 24.2,
+        style: "overlay",
+        image: "img/m5.jpg", // photo of her
+        focus: "top", // her face is near the top of this photo — crop from there, not the center
+        lyric: "I swear it's true"
+      }
+    ]
+  }
+};
+/* ============================================================ */
+
+const chapters = CONFIG.chapters;
+let currentIndex = 0;
+const stage = document.getElementById('stage');
+const topBar = document.getElementById('topBar');
+const body = document.body;
+
+// ---------- build chapter dots (skip cover + epilogue) ----------
+const storyChapters = chapters.filter(c => !c.isCover && !c.isEpilogue && !c.isIntro);
+storyChapters.forEach((c, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.dataset.storyIndex = i;
+  topBar.appendChild(d);
+});
+function updateDots(){
+  const storyIdx = storyChapters.findIndex(c => c.id === chapters[currentIndex].id);
+  [...topBar.children].forEach((d, i) => {
+    d.classList.toggle('active', i === storyIdx);
+    d.classList.toggle('done', i < storyIdx);
+  });
+}
+
+// ---------- render each chapter DOM once ----------
+chapters.forEach((c, idx) => {
+  const el = document.createElement('div');
+  el.className = 'chapter';
+  el.id = 'ch-' + c.id;
+
+  if(c.isIntro){
+    el.classList.add('intro-chapter');
+    el.innerHTML = `
+      <div class="intro-wrap" id="introWrap">
+        <img class="intro-photo" id="introPhotoA" alt="">
+        <img class="intro-photo" id="introPhotoB" alt="">
+        <div class="intro-scrim"></div>
+        <div class="intro-lyric" id="introLyric"></div>
+      </div>`;
+  } else if(c.isQuestion){
+    el.innerHTML = buildQuestionChapter(c);
+  } else if(c.isEpilogue){
+    el.innerHTML = `
+      <div class="card">
+        <div class="eyebrow">${c.eyebrow}</div>
+        <h1>${c.title}<em>${c.titleEm}</em></h1>
+        <p class="body-text"><p style="font-style:italic;color:var(--ivory-dim);">${c.sub}</p></p>
+        <div class="hint"></div>
+      </div>`;
+  } else if(c.isCover){
+    el.innerHTML = `
+      <div class="card">
+        <div class="eyebrow">${c.eyebrow}</div>
+        <h1>${c.title}<br><em>${c.titleEm}</em></h1>
+        <div class="cover-sub">${c.sub}</div>
+      </div>`;
+  } else if(c.destinations){
+    el.innerHTML = `
+      <div class="card">
+        <div class="eyebrow">${c.eyebrow}</div>
+        <h1>${c.title}<em>${c.titleEm}</em></h1>
+        <div class="body-text">${c.body.map(p=>`<p>${p}</p>`).join('')}</div>
+        <div class="dest-wrap"><div class="dest-row">
+          ${c.destinations.map(d=>`
+            <div class="dest-card">
+              <div class="flag">${d.flag}</div>
+              <div class="name">${d.name}</div>
+              <div class="note">${d.note}</div>
+            </div>`).join('')}
+        </div></div>
+        <div class="continue-row">
+          <button class="ghost" id="back-${idx}">back</button>
+          <button class="primary" id="next-${idx}">continue</button>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div class="card">
+        <div class="eyebrow">${c.eyebrow}</div>
+        <h1>${c.title}<em>${c.titleEm}</em></h1>
+        <div class="body-text">${c.body.map(p=>`<p>${p}</p>`).join('')}</div>
+        <div class="continue-row">
+          <button class="ghost" id="back-${idx}">back</button>
+          <button class="primary" id="next-${idx}">continue</button>
+        </div>
+      </div>`;
+  }
+  stage.appendChild(el);
+});
+
+function buildQuestionChapter(c){
+  const meterDots = c.dodgesUntilImpossible;
+  return `
+    <div class="card">
+      <div class="eyebrow">${c.eyebrow}</div>
+      <div class="ring">💍</div>
+      <h1>${c.title}<em>${c.titleEm}</em></h1>
+      <div class="meter-row" id="meterRow">
+        ${Array.from({length: meterDots}).map(()=>'<div class="meter-star"></div>').join('')}
+      </div>
+      <div class="continue-row">
+        <button class="primary" id="yesBtn">yes, always</button>
+        <button id="noBtn">no</button>
+      </div>
+      <div class="hint">the sky already knows the answer</div>
+    </div>`;
+}
+
+// ---------- navigation ----------
+function goTo(idx, {auto=false} = {}){
+  if(idx < 0 || idx >= chapters.length) return;
+  document.getElementById('ch-' + chapters[currentIndex].id).classList.remove('active');
+  currentIndex = idx;
+  const c = chapters[currentIndex];
+  body.className = 'mood-' + c.mood;
+  document.getElementById('ch-' + c.id).classList.add('active');
+  updateDots();
+
+  if(c.isEpilogue){
+    burstConfetti();
+    rainHearts();
+  }
+}
+
+chapters.forEach((c, idx) => {
+  const nextBtn = document.getElementById('next-' + idx);
+  const backBtn = document.getElementById('back-' + idx);
+  if(nextBtn) nextBtn.addEventListener('click', () => goTo(idx+1));
+  if(backBtn) backBtn.addEventListener('click', () => goTo(idx-1));
+});
+
+// ---------- audio + cue sync ----------
+const audio = document.getElementById('bgAudio');
+const musicBtn = document.getElementById('musicToggle');
+const lyricStrip = document.getElementById('lyricStrip');
+let musicOn = false;
+musicBtn.style.display = 'none'; // shown once a song is chosen or CONFIG.audioSrc is set
+const soundHint = document.getElementById('soundHint');
+
+// Drop your song file next to index.html and set CONFIG.audioSrc to its
+// filename. There's no upload UI on the page at all — it just plays,
+// automatically, as soon as the page opens.
+if(CONFIG.audioSrc){
+  audio.src = CONFIG.audioSrc;
+  musicBtn.style.display = 'block';
+}
+
+// Browsers block unmuted autoplay until the visitor has interacted with the
+// page/site at least once — that's a platform rule, not something a page can
+// override. So: try to play with sound immediately; if the browser refuses,
+// fall back to silent autoplay and unmute on the very first tap/click/key
+// anywhere on the page (which happens almost instantly in practice); if even
+// silent autoplay is refused (strict mobile browsers), start playback outright
+// on that same first interaction. Either way nothing is ever manually "begun".
+function tryAutoStartMusic(){
+  if(!CONFIG.audioSrc) return;
+  audio.volume = 0.7;
+  audio.play().then(() => {
+    musicOn = true;
+    musicBtn.textContent = '♪ music: on';
+  }).catch(() => {
+    audio.muted = true;
+    audio.play().then(() => {
+      musicOn = true;
+      musicBtn.textContent = '♪ music: on';
+      soundHint.classList.add('show');
+      armOnFirstInteraction(() => {
+        audio.muted = false;
+        soundHint.classList.remove('show');
+      });
+    }).catch(() => {
+      soundHint.classList.add('show');
+      armOnFirstInteraction(() => {
+        audio.muted = false;
+        audio.volume = 0;
+        audio.play().catch(()=>{});
+        musicOn = true;
+        musicBtn.textContent = '♪ music: on';
+        fadeVolume(0.7, 800);
+        soundHint.classList.remove('show');
+      });
+    });
+  });
+}
+function armOnFirstInteraction(fn){
+  const handler = () => {
+    fn();
+    ['pointerdown','keydown','touchstart'].forEach(ev => document.removeEventListener(ev, handler));
+  };
+  ['pointerdown','keydown','touchstart'].forEach(ev => document.addEventListener(ev, handler));
+}
+function fadeVolume(target, duration){
+  const start = audio.volume, startTime = performance.now();
+  function step(t){
+    const p = Math.min((t-startTime)/duration, 1);
+    audio.volume = start + (target-start)*p;
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+musicBtn.addEventListener('click', () => {
+  if(!CONFIG.audioSrc) return;
+  if(musicOn){ audio.pause(); musicBtn.textContent = '♪ music: off'; }
+  else { audio.play().catch(()=>{}); musicBtn.textContent = '♪ music: on'; }
+  musicOn = !musicOn;
+});
+
+// auto-advance to next chapter when its cueTime is reached
+audio.addEventListener('timeupdate', () => {
+  const t = audio.currentTime;
+  const next = chapters[currentIndex+1];
+  if(next && typeof next.cueTime === 'number' && t >= next.cueTime && currentIndex < chapters.length-1){
+    goTo(currentIndex+1, {auto:true});
+  }
+  // lyric strip (your own words, synced)
+  if(CONFIG.lyricCues.length){
+    const line = [...CONFIG.lyricCues].reverse().find(l => t >= l.time);
+    if(line){
+      lyricStrip.textContent = line.text;
+      lyricStrip.classList.add('show');
+    } else {
+      lyricStrip.classList.remove('show');
+    }
+  }
+  // opening photo + lyric beats, while the intro chapter is on screen
+  if(chapters[currentIndex].isIntro){
+    updateIntroBeat(t);
+  }
+});
+
+// ---------- intro beats (photo + lyric synced to the song) ----------
+// Photos are preloaded up front so quick beat changes (some are under 2s
+// apart) never show a blank frame or a pop-in delay while the image fetches.
+CONFIG.introSequence.beats.forEach(b => { new Image().src = b.image; });
+
+let introBeatIndex = -1;
+let introLayerFlip = false;
+function updateIntroBeat(t){
+  const beats = CONFIG.introSequence.beats;
+  let idx = -1;
+  for(let i=0;i<beats.length;i++){ if(t >= beats[i].cueTime) idx = i; }
+  if(idx === introBeatIndex || idx < 0) return;
+  introBeatIndex = idx;
+  const beat = beats[idx];
+
+  document.getElementById('introWrap').dataset.style = beat.style;
+
+  const showLayer = document.getElementById(introLayerFlip ? 'introPhotoB' : 'introPhotoA');
+  const hideLayer = document.getElementById(introLayerFlip ? 'introPhotoA' : 'introPhotoB');
+  showLayer.src = beat.image;
+  showLayer.style.objectPosition = beat.focus || 'center';
+  showLayer.style.opacity = 1;
+  hideLayer.style.opacity = 0;
+  introLayerFlip = !introLayerFlip;
+
+  const lyricEl = document.getElementById('introLyric');
+  lyricEl.classList.remove('show');
+  setTimeout(() => {
+    lyricEl.textContent = beat.lyric;
+    lyricEl.classList.add('show');
+  }, 140);
+}
+
+// dev helper: open the page with "?cues=1" to see a live audio.currentTime
+// readout, so you can time each lyric line exactly against your own mp3.
+if(new URLSearchParams(location.search).has('cues')){
+  const dbg = document.createElement('div');
+  dbg.id = 'cueDebug';
+  document.body.appendChild(dbg);
+  audio.addEventListener('timeupdate', () => {
+    dbg.textContent = 't = ' + audio.currentTime.toFixed(2) + 's';
+  });
+}
+
+// ---------- particles per chapter ----------
+const particleLayer = document.getElementById('particles');
+let particleInterval = null;
+function clearParticles(){ if(particleInterval) clearInterval(particleInterval); particleLayer.innerHTML=''; }
+function spawnParticles(cfg){
+  clearParticles();
+  if(!cfg) return;
+  particleInterval = setInterval(() => {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = cfg.emoji;
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.top = '104vh';
+    p.style.color = cfg.color;
+    p.style.fontSize = (12 + Math.random()*10) + 'px';
+    particleLayer.appendChild(p);
+    const duration = 6 + Math.random()*4;
+    p.animate([
+      { transform:'translateY(0)', opacity:0 },
+      { transform:'translateY(-20vh)', opacity:.8, offset:.15 },
+      { transform:`translateY(-115vh) translateX(${(Math.random()-0.5)*80}px)`, opacity:0 }
+    ], { duration: duration*1000, easing:'ease-out' });
+    setTimeout(()=> p.remove(), duration*1000);
+  }, 900 / Math.max(cfg.count/8,1));
+}
+const origGoTo = goTo;
+goTo = function(idx, opts){
+  origGoTo(idx, opts);
+  const c = chapters[idx];
+  spawnParticles(c.particle);
+  // background doodles run through every story chapter, starting right
+  // after the opening photo/lyric sequence ends (cover + intro stay bare)
+  if(!c.isCover && !c.isIntro) spawnCoupleScene(); else clearCoupleScene();
+};
+
+// ---------- couple doodles floating in the background ----------
+// Drop your own transparent PNG/GIF stickers next to this file (or in the
+// "img" folder) and list their paths here — as soon as this array is
+// non-empty, spawnCoupleScene() automatically uses your real art instead of
+// the emoji fallback below. Same floating animation either way.
+const coupleImages = [
+  // "img/couple1.png", "img/couple2.png", "img/couple3.png",
+];
+const coupleEmojis = ['💑','👫','💕','🥰','😘','💍','🌙','⭐'];
+function spawnCoupleScene(){
+  const scene = document.getElementById('coupleScene');
+  scene.innerHTML = '';
+  const useImages = coupleImages.length > 0;
+  for(let i=0;i<16;i++){
+    const d = document.createElement(useImages ? 'img' : 'div');
+    d.className = 'couple-doodle';
+    if(useImages){
+      d.src = coupleImages[Math.floor(Math.random()*coupleImages.length)];
+      d.alt = '';
+    } else {
+      d.textContent = coupleEmojis[Math.floor(Math.random()*coupleEmojis.length)];
+    }
+    d.style.left = Math.random()*100 + 'vw';
+    d.style.top = Math.random()*100 + 'vh';
+    const size = 14 + Math.random()*18;
+    d.style.fontSize = size + 'px';
+    if(useImages) d.style.width = (size*2.6) + 'px';
+    d.style.opacity = 0.3 + Math.random()*0.4;
+    d.style.animationDuration = (5 + Math.random()*4) + 's';
+    d.style.animationDelay = (Math.random()*-4) + 's';
+    scene.appendChild(d);
+  }
+  scene.classList.add('show');
+}
+function clearCoupleScene(){
+  document.getElementById('coupleScene').classList.remove('show');
+}
+
+// ---------- constellation heart (question chapter) ----------
+const heartPoints = [
+  [200,90],[170,55],[130,55],[100,85],[100,125],
+  [140,170],[200,230],[260,170],[300,125],[300,85],
+  [270,55],[230,55],[200,90]
+];
+const qChapter = chapters.find(c => c.isQuestion);
+const totalStars = qChapter.dodgesUntilImpossible;
+const usedPoints = [];
+const step = (heartPoints.length-1) / totalStars;
+for(let i=0;i<=totalStars;i++){
+  usedPoints.push(heartPoints[Math.round(i*step)] || heartPoints[heartPoints.length-1]);
+}
+const svg = document.getElementById('constSvg');
+const lines = [];
+for(let i=0;i<usedPoints.length-1;i++){
+  const [x1,y1]=usedPoints[i], [x2,y2]=usedPoints[i+1];
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+  line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+  line.setAttribute('class','conn-line');
+  svg.appendChild(line);
+  lines.push(line);
+}
+const starDots = usedPoints.map(([x,y])=>{
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',3.2);
+  c.setAttribute('class','con-star');
+  svg.appendChild(c);
+  return c;
+});
+const meterDots = () => [...document.querySelectorAll('#meterRow .meter-star')];
+
+let dodgeCount = 0;
+function lightStar(i){
+  if(lines[i-1]) lines[i-1].classList.add('lit');
+  if(starDots[i]) starDots[i].classList.add('lit');
+  const md = meterDots();
+  if(md[i-1]) md[i-1].classList.add('on');
+}
+lightStar(0);
+
+function showCaption(x,y){
+  const cap = document.createElement('div');
+  cap.className = 'caption';
+  cap.textContent = qChapter.noCaptions[Math.min(dodgeCount-1, qChapter.noCaptions.length-1)];
+  cap.style.left = x+'px'; cap.style.top = y+'px';
+  document.body.appendChild(cap);
+  requestAnimationFrame(()=> cap.classList.add('show'));
+  setTimeout(()=>{ cap.style.opacity = 0; }, 900);
+  setTimeout(()=> cap.remove(), 1300);
+}
+
+let noBtnAnchor = null;
+function dodge(){
+  const noBtn = document.getElementById('noBtn');
+  dodgeCount++;
+  lightStar(dodgeCount);
+
+  // remember its original spot next to "yes, always" before it goes fixed,
+  // so every dodge stays close to the prompt instead of roaming the whole page
+  if(!noBtnAnchor){
+    const startRect = noBtn.getBoundingClientRect();
+    noBtnAnchor = { x: startRect.left, y: startRect.top };
+  }
+
+  // measure the button so it never gets positioned partly off-screen
+  noBtn.classList.add('roaming');
+  const rect = noBtn.getBoundingClientRect();
+  const btnW = rect.width || 110;
+  const btnH = rect.height || 46;
+  const edgePad = 16; // keep a little breathing room from the very edge
+  const rangeX = 130; // how far it's allowed to stray from the toolbar
+  const rangeY = 70;
+
+  const minX = Math.max(edgePad, noBtnAnchor.x - rangeX);
+  const maxX = Math.min(window.innerWidth - btnW - edgePad, noBtnAnchor.x + rangeX);
+  const minY = Math.max(edgePad, noBtnAnchor.y - rangeY);
+  const maxY = Math.min(window.innerHeight - btnH - edgePad, noBtnAnchor.y + rangeY);
+  const newX = minX + Math.random()*Math.max(maxX-minX, 1);
+  const newY = minY + Math.random()*Math.max(maxY-minY, 1);
+
+  noBtn.style.left = newX+'px';
+  noBtn.style.top = newY+'px';
+  showCaption(Math.min(newX, window.innerWidth-160), Math.max(newY-30, 20));
+  const progress = dodgeCount / totalStars;
+  noBtn.style.fontSize = (18 - progress*7)+'px';
+  noBtn.style.opacity = 1 - progress*0.6;
+  if(dodgeCount >= totalStars){
+    noBtn.textContent = 'okay fine';
+    noBtn.style.pointerEvents = 'none';
+    noBtn.style.opacity = '0.25';
+  }
+}
+
+document.getElementById('ch-' + qChapter.id).addEventListener('mouseover', (e) => {
+  if(e.target.id === 'noBtn' && dodgeCount < totalStars) dodge();
+});
+document.getElementById('ch-' + qChapter.id).addEventListener('click', (e) => {
+  if(e.target.id === 'noBtn'){
+    e.preventDefault();
+    if(dodgeCount < totalStars) dodge();
+  }
+  if(e.target.id === 'yesBtn'){
+    for(let i=dodgeCount+1;i<=totalStars;i++) lightStar(i);
+    setTimeout(() => goTo(chapters.findIndex(c=>c.isEpilogue)), 500);
+  }
+});
+document.getElementById('ch-' + qChapter.id).addEventListener('touchstart', (e) => {
+  if(e.target.id === 'noBtn'){
+    e.preventDefault();
+    if(dodgeCount < totalStars) dodge();
+  }
+});
+
+// ---------- confetti + falling hearts ----------
+function burstConfetti(){
+  const colors = ['#FF7FA6','#D9AE5C','#F6EEE1','#FF5A8C'];
+  for(let i=0;i<70;i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random()*100+'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(p);
+    const duration = 2.2 + Math.random()*1.6;
+    p.animate([
+      { transform:'translateY(0) rotate(0deg)', opacity:1 },
+      { transform:`translateY(${window.innerHeight+40}px) rotate(${360+Math.random()*360}deg)`, opacity:.9 }
+    ], { duration: duration*1000, easing:'ease-in' });
+    setTimeout(()=> p.remove(), duration*1000);
+  }
+}
+function rainHearts(){
+  const hearts = ['♥','♡','💛'];
+  for(let i=0;i<24;i++){
+    setTimeout(()=>{
+      const h = document.createElement('div');
+      h.className = 'fall-heart';
+      h.textContent = hearts[Math.floor(Math.random()*hearts.length)];
+      h.style.left = Math.random()*100+'vw';
+      h.style.color = Math.random()>0.5 ? 'var(--rose)' : 'var(--gold)';
+      document.body.appendChild(h);
+      const duration = 3 + Math.random()*2;
+      h.animate([
+        { transform:'translateY(0) rotate(0deg)', opacity:1 },
+        { transform:`translateY(${window.innerHeight+40}px) rotate(${Math.random()>0.5?360:-360}deg)`, opacity:.85 }
+      ], { duration: duration*1000, easing:'ease-in' });
+      setTimeout(()=> h.remove(), duration*1000);
+    }, i*140);
+  }
+}
+
+// ---------- init ----------
+document.getElementById('ch-cover').classList.add('active');
+tryAutoStartMusic();
+</script>
+
+</body>
+</html>
