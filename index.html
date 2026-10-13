@@ -725,6 +725,15 @@ audio.addEventListener('timeupdate', () => {
 });
 
 // ---------- intro beats (photo + lyric synced to the song) ----------
+
+// Keep the opening transition reliable on mobile browsers with sparse timeupdate events.
+setInterval(() => {
+  const intro = chapters[1];
+  if(!audio.paused && currentIndex === 0 && typeof intro.cueTime === 'number' && audio.currentTime >= intro.cueTime){
+    goTo(1, {auto:true});
+    updateIntroBeat(audio.currentTime);
+  }
+}, 250);
 // Photos are preloaded up front so quick beat changes (some are under 2s
 // apart) never show a blank frame or a pop-in delay while the image fetches.
 CONFIG.introSequence.beats.forEach(b => { new Image().src = b.image; });
