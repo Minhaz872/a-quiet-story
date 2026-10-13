@@ -20,7 +20,7 @@ body{
   font-family:'Cormorant Garamond', serif;
   color: var(--ivory);
   overflow:hidden;
-  height:100vh;
+  height:100dvh;
   position:relative;
   background: #150F26;
   transition: background var(--transition-speed) ease;
@@ -256,16 +256,6 @@ button.ghost{
 }
 .intro-wrap[data-style="behind"] .intro-lyric.show{ opacity:.22; }
 
-/* ---------- sound hint (shown only if autoplay-with-sound gets blocked) ---------- */
-#soundHint{
-  position:fixed; top:16px; left:18px; z-index:41;
-  background: rgba(255,255,255,.06); border:1px solid rgba(217,174,92,.3);
-  color: var(--ivory); font-family:'JetBrains Mono', monospace; font-size:10.5px;
-  letter-spacing:.08em; padding:7px 13px; border-radius:999px;
-  opacity:0; pointer-events:none; transition: opacity .5s ease;
-}
-#soundHint.show{ opacity:1; }
-
 #cueDebug{
   position:fixed; bottom:8px; left:8px; z-index:999;
   background:rgba(0,0,0,.6); color:#7CFF9E;
@@ -282,8 +272,7 @@ button.ghost{
 
 <div id="topBar"></div>
 <button id="musicToggle">♪ music: off</button>
-<div id="soundHint">🔈 tap anywhere for sound</div>
-<audio id="bgAudio" loop></audio>
+<audio id="bgAudio" loop preload="auto" playsinline></audio>
 <div id="lyricStrip"></div>
 
 <div id="stage"></div>
@@ -549,6 +538,7 @@ chapters.forEach((c, idx) => {
         <div class="eyebrow">${c.eyebrow}</div>
         <h1>${c.title}<br><em>${c.titleEm}</em></h1>
         <div class="cover-sub">${c.sub}</div>
+        <button class="primary" id="beginBtn" type="button">tap to begin</button>
       </div>`;
   } else if(c.destinations){
     el.innerHTML = `
@@ -630,8 +620,8 @@ const audio = document.getElementById('bgAudio');
 const musicBtn = document.getElementById('musicToggle');
 const lyricStrip = document.getElementById('lyricStrip');
 let musicOn = false;
+let cueDebug = null;
 musicBtn.style.display = 'none'; // shown once a song is chosen or CONFIG.audioSrc is set
-const soundHint = document.getElementById('soundHint');
 
 // Drop your song file next to index.html and set CONFIG.audioSrc to its
 // filename. There's no upload UI on the page at all — it just plays,
@@ -641,59 +631,17 @@ if(CONFIG.audioSrc){
   musicBtn.style.display = 'block';
 }
 
-// Browsers block unmuted autoplay until the visitor has interacted with the
-// page/site at least once — that's a platform rule, not something a page can
-// override. So: try to play with sound immediately; if the browser refuses,
-// fall back to silent autoplay and unmute on the very first tap/click/key
-// anywhere on the page (which happens almost instantly in practice); if even
-// silent autoplay is refused (strict mobile browsers), start playback outright
-// on that same first interaction. Either way nothing is ever manually "begun".
-function tryAutoStartMusic(){
-  if(!CONFIG.audioSrc) return;
+document.getElementById('beginBtn').addEventListener('click', () => {
+  audio.muted = false;
   audio.volume = 0.7;
   audio.play().then(() => {
     musicOn = true;
     musicBtn.textContent = '♪ music: on';
+    document.getElementById('beginBtn').style.display = 'none';
   }).catch(() => {
-    audio.muted = true;
-    audio.play().then(() => {
-      musicOn = true;
-      musicBtn.textContent = '♪ music: on';
-      soundHint.classList.add('show');
-      armOnFirstInteraction(() => {
-        audio.muted = false;
-        soundHint.classList.remove('show');
-      });
-    }).catch(() => {
-      soundHint.classList.add('show');
-      armOnFirstInteraction(() => {
-        audio.muted = false;
-        audio.volume = 0;
-        audio.play().catch(()=>{});
-        musicOn = true;
-        musicBtn.textContent = '♪ music: on';
-        fadeVolume(0.7, 800);
-        soundHint.classList.remove('show');
-      });
-    });
+    document.getElementById('beginBtn').textContent = 'tap again';
   });
-}
-function armOnFirstInteraction(fn){
-  const handler = () => {
-    fn();
-    ['pointerdown','keydown','touchstart'].forEach(ev => document.removeEventListener(ev, handler));
-  };
-  ['pointerdown','keydown','touchstart'].forEach(ev => document.addEventListener(ev, handler));
-}
-function fadeVolume(target, duration){
-  const start = audio.volume, startTime = performance.now();
-  function step(t){
-    const p = Math.min((t-startTime)/duration, 1);
-    audio.volume = start + (target-start)*p;
-    if(p<1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
+});
 musicBtn.addEventListener('click', () => {
   if(!CONFIG.audioSrc) return;
   if(musicOn){ audio.pause(); musicBtn.textContent = '♪ music: off'; }
@@ -701,14 +649,18 @@ musicBtn.addEventListener('click', () => {
   musicOn = !musicOn;
 });
 
-// auto-advance to next chapter when its cueTime is reached
-audio.addEventListener('timeupdate', () => {
+function syncToAudio(){
+  if(audio.paused) return;
   const t = audio.currentTime;
-  const next = chapters[currentIndex+1];
-  if(next && typeof next.cueTime === 'number' && t >= next.cueTime && currentIndex < chapters.length-1){
-    goTo(currentIndex+1, {auto:true});
-  }
-  // lyric strip (your own words, synced)
+  let target = currentIndex;
+  chapters.forEach((chapter, index) => {
+    if(typeof chapter.cueTime === 'number' && t >= chapter.cueTime && index > target){
+      target = index;
+    }
+  });
+  if(target !== currentIndex) goTo(target, {auto:true});
+
+  if(chapters[currentIndex].isIntro) updateIntroBeat(t);
   if(CONFIG.lyricCues.length){
     const line = [...CONFIG.lyricCues].reverse().find(l => t >= l.time);
     if(line){
@@ -718,22 +670,11 @@ audio.addEventListener('timeupdate', () => {
       lyricStrip.classList.remove('show');
     }
   }
-  // opening photo + lyric beats, while the intro chapter is on screen
-  if(chapters[currentIndex].isIntro){
-    updateIntroBeat(t);
-  }
-});
+  if(cueDebug) cueDebug.textContent = 't = ' + t.toFixed(2) + 's';
+}
+setInterval(syncToAudio, 150);
 
 // ---------- intro beats (photo + lyric synced to the song) ----------
-
-// Keep the opening transition reliable on mobile browsers with sparse timeupdate events.
-setInterval(() => {
-  const intro = chapters[1];
-  if(!audio.paused && currentIndex === 0 && typeof intro.cueTime === 'number' && audio.currentTime >= intro.cueTime){
-    goTo(1, {auto:true});
-    updateIntroBeat(audio.currentTime);
-  }
-}, 250);
 // Photos are preloaded up front so quick beat changes (some are under 2s
 // apart) never show a blank frame or a pop-in delay while the image fetches.
 CONFIG.introSequence.beats.forEach(b => { new Image().src = b.image; });
@@ -769,12 +710,9 @@ function updateIntroBeat(t){
 // dev helper: open the page with "?cues=1" to see a live audio.currentTime
 // readout, so you can time each lyric line exactly against your own mp3.
 if(new URLSearchParams(location.search).has('cues')){
-  const dbg = document.createElement('div');
-  dbg.id = 'cueDebug';
-  document.body.appendChild(dbg);
-  audio.addEventListener('timeupdate', () => {
-    dbg.textContent = 't = ' + audio.currentTime.toFixed(2) + 's';
-  });
+  cueDebug = document.createElement('div');
+  cueDebug.id = 'cueDebug';
+  document.body.appendChild(cueDebug);
 }
 
 // ---------- particles per chapter ----------
@@ -1005,7 +943,6 @@ function rainHearts(){
 
 // ---------- init ----------
 document.getElementById('ch-cover').classList.add('active');
-tryAutoStartMusic();
 </script>
 
 </body>
